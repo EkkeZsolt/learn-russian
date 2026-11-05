@@ -2,7 +2,7 @@
 
 Mobilbarát orosz kvíz az **Orosz nyelvkönyv első 22 oldala** alapján (1. lecke: ábécé, `это / кто / что`, főnévnem, többes szám; 2. lecke eleje: család, foglalkozások, köszönések, névmások), plusz az **összes szám 1–100-ig**.
 
-- **44 feladat, kb. 35–45 perc** alatt végigvihető, összesen 154 pont
+- **44 feladat, kb. 35–45 perc** alatt végigvihető, összesen 157 pont
 - Mindenféle típus: válaszválasztós, beírós, igaz/hamis, mondatkiegészítés, párosítás, szórend-kirakás
 - Minden magyarázat **magyarul** van
 - Nincs hang / TTS
