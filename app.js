@@ -2,9 +2,14 @@
 const COOKIE = "oroszKvizHaladas";
 const app = document.getElementById("app");
 const restartBtn = document.getElementById("restartBtn");
-const byId = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+const byId = Object.fromEntries([...QUESTIONS, ...WORKBOOK_QUESTIONS].map(q => [q.id, q]));
 const TYPE_LABEL = { choice: "Válaszválasztós", fill: "Mondatkiegészítés", bool: "Igaz / hamis", input: "Beírós", match: "Párosítás", order: "Rakd sorrendbe" };
-const MAX_POINTS = QUESTIONS.reduce((s, q) => s + (q.type === "match" ? q.pairs.length : 1), 0);
+const POOLS = {
+  book: { label: "Tankönyv 1–22. oldal + számok 1–100", short: "Tankönyv", questions: QUESTIONS },
+  wb: { label: "Munkafüzet 1–16. oldal", short: "Munkafüzet", questions: WORKBOOK_QUESTIONS }
+};
+function pool() { return POOLS[(state && state.mode) || "book"]; }
+function maxPoints() { return pool().questions.reduce((s, q) => s + (q.type === "match" ? q.pairs.length : 1), 0); }
 
 let state = loadState();       // {order:[id], idx:0, results:{id:[pont,max]}}
 let answered = false;          // az aktuális kérdés le van-e zárva
@@ -29,6 +34,7 @@ function loadState() {
     if (!m) return null;
     const s = JSON.parse(decodeURIComponent(m[1]));
     if (!s || !Array.isArray(s.order) || !s.order.every(id => byId[id])) return null;
+    if (!POOLS[s.mode]) s.mode = "book"; // régi mentés: tankönyves kvíz
     return s;
   } catch (e) { return null; }
 }
@@ -55,46 +61,57 @@ restartBtn.addEventListener("click", () => {
 
 function renderHome() {
   restartBtn.hidden = !state;
-  const done = state ? state.idx : 0;
   const has = state && state.idx > 0 && state.idx < state.order.length;
   const finished = state && state.idx >= state.order.length;
+  const bookMax = POOLS.book.questions.reduce((s, q) => s + (q.type === "match" ? q.pairs.length : 1), 0);
+  const wbMax = POOLS.wb.questions.reduce((s, q) => s + (q.type === "match" ? q.pairs.length : 1), 0);
   app.innerHTML = `
   <section class="card">
     <h1>Orosz kvíz 🇷🇺</h1>
-    <p>A nyelvkönyv <strong>első 22 oldalának</strong> anyaga (1. lecke + a családos 2. lecke eleje),
-    plusz az <strong>összes szám 1–100-ig</strong> párosítós feladatokban.</p>
+    <p>Válassz kvízt – mindegyik kb. 35–45 perc alatt végigvihető egy óra alatt:</p>
     <ul class="list">
-      <li><strong>${QUESTIONS.length} feladat</strong>, kb. 35–45 perc alatt végigvihető</li>
-      <li>Összesen <strong>${MAX_POINTS} pont</strong> szerezhető</li>
+      <li><strong>📖 Tankönyv:</strong> az első 22 oldal anyaga + az összes szám 1–100-ig (${QUESTIONS.length} feladat, ${bookMax} pont)</li>
+      <li><strong>📝 Munkafüzet:</strong> a munkafüzet első 16 oldalának összes anyaga (${WORKBOOK_QUESTIONS.length} feladat, ${wbMax} pont)</li>
       <li>Mindenféle típus: válaszválasztós, beírós, igaz/hamis, mondatkiegészítés, párosítás, szórend-kirakás</li>
       <li>Minden magyarázat <strong>magyarul</strong> van, hang/TTS nincs</li>
       <li>A haladásod <strong>cookie-ban</strong> mentődik: ha bezárod, ugyanott folytathatod</li>
     </ul>
-    ${finished ? `<p><strong>Kész vagy!</strong> Pontod: ${score()} / ${MAX_POINTS}. Újrakezdheted lent.</p>` : ""}
-    ${has ? `<p class="muted">Folytatás innen: ${done + 1}. feladat / ${state.order.length} &nbsp;•&nbsp; Eddigi pont: ${score()}</p>
-            <button class="btn-primary" id="goBtn" type="button">▶ Folytatás</button>
-            <div class="actions"><button id="newBtn" type="button">Újrakezdés elölről</button></div>`
-          : `<button class="btn-primary" id="goBtn" type="button">▶ Kvíz indítása</button>`}
+    ${finished ? `<p><strong>Kész vagy a(z) ${esc(pool().short)} kvízzel!</strong> Pontod: ${score()} / ${maxPoints()}.</p>` : ""}
+    ${has ? `<p class="muted">Félbehagyott kvízed: <strong>${esc(pool().label)}</strong> – folytatás innen: ${state.idx + 1}. feladat / ${state.order.length} &nbsp;•&nbsp; Eddigi pont: ${score()}</p>
+            <button class="btn-primary" id="goBtn" type="button">▶ Folytatás (${esc(pool().short)})</button>` : ""}
+    <div class="actions" style="margin-top:12px">
+      <button class="btn-primary" id="bookBtn" type="button">▶ Tankönyves kvíz indítása</button>
+      <button class="btn-primary" id="wbBtn" type="button">▶ Munkafüzetes kvíz indítása</button>
+    </div>
+    ${has ? `<div class="actions"><button id="newBtn" type="button">Mentett haladás törlése</button></div>` : ""}
   </section>`;
-  document.getElementById("goBtn").addEventListener("click", () => {
-    if (!state || finished) startNew();
+  if (has) document.getElementById("goBtn").addEventListener("click", renderQuestion);
+  document.getElementById("bookBtn").addEventListener("click", () => {
+    if (has && pool().short !== "Tankönyv" && !confirm("A félbehagyott munkafüzetes kvízed törlődik. Biztosan a tankönyvest indítod?")) return;
+    if (finished || !state || pool().short !== "Tankönyv") startNew("book");
+    renderQuestion();
+  });
+  document.getElementById("wbBtn").addEventListener("click", () => {
+    if (has && pool().short !== "Munkafüzet" && !confirm("A félbehagyott tankönyves kvízed törlődik. Biztosan a munkafüzetest indítod?")) return;
+    if (finished || !state || pool().short !== "Munkafüzet") startNew("wb");
     renderQuestion();
   });
   const nb = document.getElementById("newBtn");
-  if (nb) nb.addEventListener("click", () => { if (confirm("Biztosan elölről kezded? A mentett haladás törlődik.")) { startNew(); renderQuestion(); } });
+  if (nb) nb.addEventListener("click", () => { if (confirm("Biztosan törlöd a mentett haladást?")) { clearState(); renderHome(); } });
 }
 
-function startNew() {
-  state = { order: shuffle(QUESTIONS.map(q => q.id)), idx: 0, results: {} };
+function startNew(mode) {
+  const p = POOLS[mode] || POOLS.book;
+  state = { mode: POOLS[mode] ? mode : "book", order: shuffle(p.questions.map(q => q.id)), idx: 0, results: {} };
   saveState();
 }
 
 function header(q) {
   const total = state.order.length;
   const pct = Math.round(state.idx / total * 100);
-  return `<div class="row"><span>${state.idx + 1}. feladat / ${total}</span><span>Pont: ${score()} / ${MAX_POINTS}</span></div>
+  return `<div class="row"><span>${state.idx + 1}. feladat / ${total}</span><span>Pont: ${score()} / ${maxPoints()}</span></div>
   <div class="progress"><div style="width:${pct}%"></div></div>
-  <div class="meta"><span class="pill">${esc(q.cat)}</span><span class="pill type">${TYPE_LABEL[q.type]}</span></div>`;
+  <div class="meta"><span class="pill">${esc(pool().short)}</span><span class="pill">${esc(q.cat)}</span><span class="pill type">${TYPE_LABEL[q.type]}</span></div>`;
 }
 
 function renderQuestion() {
@@ -227,9 +244,9 @@ function answerOrder(q) {
 function renderResult() {
   restartBtn.hidden = false;
   const pts = score();
-  const pct = Math.round(pts / MAX_POINTS * 100);
+  const pct = Math.round(pts / maxPoints() * 100);
   const cats = {};
-  for (const q of QUESTIONS) {
+  for (const q of pool().questions) {
     const r = state.results[q.id]; if (!r) continue;
     const key = q.cat.startsWith("Számok") ? "Számok 1–100" : q.cat;
     cats[key] = cats[key] || [0, 0]; cats[key][0] += r[0]; cats[key][1] += r[1];
@@ -241,12 +258,13 @@ function renderResult() {
     : "Ne add fel! Olvasd el figyelmesen a magyar magyarázatokat, és indíts egy új kört! 🌱";
   app.innerHTML = `<section class="card center">
     <h1>Kész! 🎉</h1>
-    <div class="scorebig">${pts} / ${MAX_POINTS}</div>
+    <div class="scorebig">${pts} / ${maxPoints()}</div>
     <p><strong>${pct}%</strong> – ${msg}</p>
-    <p class="muted">Kategóriánként:</p><ul class="list" style="text-align:left">${rows}</ul>
-    <div class="actions"><button class="btn-primary" id="againBtn" type="button">↻ Újrakezdés</button></div>
+    <p class="muted">${esc(pool().label)} – kategóriánként:</p><ul class="list" style="text-align:left">${rows}</ul>
+    <div class="actions"><button class="btn-primary" id="againBtn" type="button">↻ Újrakezdés (ugyanez a kvíz)</button><button id="homeBtn" type="button">Kezdőlap – másik kvíz választása</button></div>
   </section>`;
-  document.getElementById("againBtn").addEventListener("click", () => { startNew(); renderQuestion(); });
+  document.getElementById("againBtn").addEventListener("click", () => { startNew(state.mode); renderQuestion(); });
+  document.getElementById("homeBtn").addEventListener("click", renderHome);
   window.scrollTo(0, 0);
 }
 

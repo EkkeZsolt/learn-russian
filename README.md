@@ -1,8 +1,11 @@
 # 🇷🇺 Orosz kvíz – telefonra
 
-Mobilbarát orosz kvíz az **Orosz nyelvkönyv első 22 oldala** alapján (1. lecke: ábécé, `это / кто / что`, főnévnem, többes szám; 2. lecke eleje: család, foglalkozások, köszönések, névmások), plusz az **összes szám 1–100-ig**.
+Mobilbarát orosz kvíz két, külön indítható résszel:
 
-- **44 feladat, kb. 35–45 perc** alatt végigvihető, összesen 157 pont
+- **📖 Tankönyv:** az **Orosz nyelvkönyv első 22 oldala** alapján (1. lecke: ábécé, `это / кто / что`, főnévnem, többes szám; 2. lecke eleje: család, foglalkozások, köszönések, névmások), plusz az **összes szám 1–100-ig** – 44 feladat, 157 pont
+- **📝 Munkafüzet:** a **Шаг за шагом 1 orosz munkafüzet első 16 oldalának összes anyaga** (országok–fővárosok, autómárkák, feliratok, állatok, számolás 0–20, család többes száma, családfa, `жить/любить` ragozás, női foglalkozások, birtokos névmások, `Где…? Вот…`) – 39 feladat, 113 pont. (A munkafüzet 1–2. oldala csak címlap/impresszum.)
+
+Mindkét kvíz külön-külön **kb. 35–45 perc** alatt végigvihető.
 - Mindenféle típus: válaszválasztós, beírós, igaz/hamis, mondatkiegészítés, párosítás, szórend-kirakás
 - Minden magyarázat **magyarul** van
 - Nincs hang / TTS
@@ -26,7 +29,7 @@ Nyisd meg a GitHub Pages címet a telefon böngészőjében, és kezd el a kvíz
    - `README.md`
    - `.nojekyll`
    
-   (Az `Orosz-nyelvkönyv.pdf` nem kell a működéshez, csak forrás volt.)
+   (A PDF-ek – `Orosz-nyelvkönyv.pdf`, `Sag za Sagom 1. orosz munkafüzet.pdf` – nem kellenek a működéshez, csak források voltak; `.gitignore` zárja ki őket.)
    
    Git-tel:
    ```bash
@@ -45,4 +48,4 @@ Ezt a címet nyisd meg telefonon – akár a kezdőképernyőre is kiteheted par
 
 ## Kérdések bővítése
 
-A kérdések a `questions.js` fájlban vannak. Új feladatnál másolj le egy meglévő blokkot, adj neki új `id`-t, és írd át a szöveget. Típusok: `choice`, `fill`, `bool`, `input`, `match`, `order`. A számokat (1–100) a fájl elején lévő `numberRu` függvény állítja elő automatikusan.
+A kérdések a `questions.js` fájlban vannak: a tankönyvesek a `QUESTIONS`, a munkafüzetesek a `WORKBOOK_QUESTIONS` tömbben. Új feladatnál másolj le egy meglévő blokkot, adj neki új `id`-t, és írd át a szöveget. Típusok: `choice`, `fill`, `bool`, `input`, `match`, `order`. A számokat (1–100) a fájl elején lévő `numberRu` függvény állítja elő automatikusan.
