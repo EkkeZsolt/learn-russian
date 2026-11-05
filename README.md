@@ -17,7 +17,7 @@ Nyisd meg a GitHub Pages címet a telefon böngészőjében, és kezd el a kvíz
 
 ## Feltöltés GitHubra és GitHub Pages bekapcsolása
 
-1. Hozz létre egy új repository-t a GitHubon (pl. `russian` néven).
+1. Hozz létre egy új repository-t a GitHubon `learn-russian` néven.
 2. Töltsd fel ebbe a mappába ezeket a fájlokat:
    - `index.html`
    - `style.css`
@@ -34,12 +34,12 @@ Nyisd meg a GitHub Pages címet a telefon böngészőjében, és kezd el a kvíz
    git add index.html style.css app.js questions.js README.md .nojekyll
    git commit -m "Orosz kvíz"
    git branch -M main
-   git remote add origin https://github.com/FELHASZNALONEVED/russian.git
+   git remote add origin https://github.com/FELHASZNALONEVED/learn-russian.git
    git push -u origin main
    ```
 3. A repository-ban: **Settings → Pages**
 4. **Build and deployment → Source: Deploy from a branch**, Branch: `main` / `(root)`, majd **Save**.
-5. Pár perc múlva elérhető lesz itt: `https://FELHASZNALONEVED.github.io/russian/`
+5. Pár perc múlva elérhető lesz itt: `https://FELHASZNALONEVED.github.io/learn-russian/`
 
 Ezt a címet nyisd meg telefonon – akár a kezdőképernyőre is kiteheted parancsikonként.
 
